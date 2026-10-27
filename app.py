@@ -1,6 +1,9 @@
-﻿import os
+import ipaddress
+import os
+import time
+from urllib.parse import urlparse
 import requests
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -64,6 +67,133 @@ def deployments():
         return jsonify({
             "error": "Unable to fetch GitHub history"
         }), 502
+
+
+def is_safe_url(target_url: str):
+    parsed = urlparse(target_url)
+    if parsed.scheme not in ("http", "https"):
+        return False, "Invalid protocol. Only http:// and https:// are supported."
+    hostname = parsed.hostname
+    if not hostname:
+        return False, "Invalid URL: missing host."
+
+    lowered = hostname.lower()
+    if lowered in ("localhost", "0.0.0.0", "127.0.0.1", "::1") or lowered.endswith((".local", ".internal")):
+        return False, "Access to localhost or internal network addresses is blocked for security."
+
+    try:
+        ip = ipaddress.ip_address(hostname)
+        if ip.is_loopback or ip.is_private or ip.is_reserved or ip.is_link_local:
+            return False, "Access to private or local IP ranges is blocked for security."
+    except ValueError:
+        pass
+
+    return True, None
+
+
+@app.route("/api/test-service", methods=["POST"])
+def test_service():
+    payload = request.get_json(silent=True) or {}
+    raw_url = payload.get("url", "").strip()
+    method = str(payload.get("method", "GET")).upper().strip()
+
+    if not raw_url:
+        return jsonify({
+            "success": False,
+            "error": "URL parameter is required."
+        }), 400
+
+    allowed_methods = {"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"}
+    if method not in allowed_methods:
+        return jsonify({
+            "success": False,
+            "error": f"Invalid HTTP method. Allowed: {', '.join(sorted(allowed_methods))}"
+        }), 400
+
+    try:
+        expected_status = int(payload.get("expected_status", 200))
+    except (ValueError, TypeError):
+        expected_status = 200
+
+    is_safe, error_msg = is_safe_url(raw_url)
+    if not is_safe:
+        return jsonify({
+            "success": False,
+            "error": error_msg
+        }), 400
+
+    start_time = time.time()
+    try:
+        response = requests.request(
+            method=method,
+            url=raw_url,
+            timeout=8,
+            headers={
+                "User-Agent": "Smart-Ops-Testing-Engine/1.0",
+                "Accept": "*/*"
+            }
+        )
+        latency_ms = round((time.time() - start_time) * 1000, 2)
+        passed = (response.status_code == expected_status)
+        preview = response.text[:300] if response.text else ""
+
+        return jsonify({
+            "success": True,
+            "passed": passed,
+            "url": raw_url,
+            "method": method,
+            "status_code": response.status_code,
+            "status_text": response.reason,
+            "expected_status": expected_status,
+            "latency_ms": latency_ms,
+            "content_type": response.headers.get("Content-Type", "Unknown"),
+            "response_size_bytes": len(response.content),
+            "response_preview": preview
+        }), 200
+
+    except requests.exceptions.Timeout:
+        latency_ms = round((time.time() - start_time) * 1000, 2)
+        return jsonify({
+            "success": False,
+            "passed": False,
+            "url": raw_url,
+            "method": method,
+            "latency_ms": latency_ms,
+            "error": "Request timed out (server took longer than 8 seconds to respond)."
+        }), 504
+
+    except requests.exceptions.SSLError as e:
+        latency_ms = round((time.time() - start_time) * 1000, 2)
+        return jsonify({
+            "success": False,
+            "passed": False,
+            "url": raw_url,
+            "method": method,
+            "latency_ms": latency_ms,
+            "error": f"SSL/TLS Certificate verification failed: {str(e)}"
+        }), 502
+
+    except requests.exceptions.ConnectionError:
+        latency_ms = round((time.time() - start_time) * 1000, 2)
+        return jsonify({
+            "success": False,
+            "passed": False,
+            "url": raw_url,
+            "method": method,
+            "latency_ms": latency_ms,
+            "error": "Failed to establish connection. Target host might be down or unreachable."
+        }), 502
+
+    except requests.exceptions.RequestException as e:
+        latency_ms = round((time.time() - start_time) * 1000, 2)
+        return jsonify({
+            "success": False,
+            "passed": False,
+            "url": raw_url,
+            "method": method,
+            "latency_ms": latency_ms,
+            "error": f"Request failed: {str(e)}"
+        }), 500
 
 
 if __name__ == "__main__":

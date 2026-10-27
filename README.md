@@ -1,4 +1,4 @@
-﻿# Smart Ops 🚀
+# Smart Ops 🚀
 Automated Deployment and Monitoring Platform using DevOps.
 
 ## Live Demo
@@ -11,6 +11,7 @@ Automated Deployment and Monitoring Platform using DevOps.
 ## Features
 - Interactive dashboard
 - Application health monitoring
+- External software & API testing (live HTTP probes, latency tracking, status code verification)
 - GitHub commit history
 - Automated tests using pytest
 - CI/CD with GitHub Actions
@@ -45,6 +46,7 @@ Run it:
 - `/health` — Health check
 - `/api/status` — Application status
 - `/api/deployments` — GitHub commit history
+- `/api/test-service` — Test external software/API health and latency (POST)
 
 ## Author
 Ratnakar Gupta — B.Tech Computer Science and Engineering

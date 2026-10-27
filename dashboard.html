@@ -150,6 +150,8 @@
             border-radius: 7px;
             cursor: pointer;
             margin-top: 18px;
+            font-weight: 600;
+            transition: background 0.2s;
         }
 
         .check-btn:hover {
@@ -196,6 +198,92 @@
 
         #deployment-history {
             overflow-wrap: anywhere;
+        }
+
+        /* Software & Service Tester Styles */
+        .form-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .form-input, .form-select {
+            background: #0b1120;
+            color: #e5e7eb;
+            border: 1px solid #263247;
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: #60a5fa;
+        }
+
+        .preset-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: #334155;
+            color: #e2e8f0;
+        }
+
+        .test-result-box {
+            margin-top: 18px;
+            border-radius: 8px;
+            padding: 18px 20px;
+            display: none;
+        }
+
+        .test-passed {
+            background: rgba(6, 78, 59, 0.25);
+            border: 1px solid #059669;
+        }
+
+        .test-failed {
+            background: rgba(127, 29, 29, 0.25);
+            border: 1px solid #dc2626;
+        }
+
+        .result-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .result-badge {
+            padding: 5px 11px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .code-preview {
+            background: #060b13;
+            border: 1px solid #1e293b;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 12px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #cbd5e1;
+            max-height: 160px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
         }
 
         footer {
@@ -342,6 +430,55 @@
 
         </section>
 
+        <!-- Software & API Health Tester -->
+        <section class="panel history" id="service-tester-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+                <h3 style="margin-bottom: 0;">🧪 Test Your Software / Service</h3>
+                <span class="badge" style="background:#1e293b; color:#93c5fd;">● Live HTTP & Health Prober</span>
+            </div>
+            <p style="color:#94a3b8; font-size:14px; margin-bottom: 18px; line-height: 1.6;">
+                Verify whether your deployed application, microservice, or API endpoint is live and responding. Test HTTP status codes, latency in milliseconds, and inspect response payloads.
+            </p>
+
+            <form id="tester-form" onsubmit="event.preventDefault(); runSoftwareTest();">
+                <div class="form-group">
+                    <select id="test-method" class="form-select" style="min-width: 100px;">
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="HEAD">HEAD</option>
+                        <option value="PUT">PUT</option>
+                        <option value="DELETE">DELETE</option>
+                    </select>
+                    <input id="test-url" class="form-input" type="url" placeholder="https://your-api.com/health or https://api.github.com" required style="flex: 1; min-width: 260px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label for="test-expected" style="font-size: 13px; color: #94a3b8; white-space: nowrap;">Expected Code:</label>
+                        <input id="test-expected" class="form-input" type="number" value="200" min="100" max="599" style="width: 85px;">
+                    </div>
+                    <button type="submit" class="check-btn" style="margin-top: 0; padding: 12px 20px;">Run Test</button>
+                </div>
+            </form>
+
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 10px;">
+                <span style="font-size: 12px; color: #64748b;">Quick Presets:</span>
+                <button type="button" class="preset-btn" onclick="applyPreset('https://httpbin.org/status/200', 'GET', 200)">HTTPBin 200 (Success)</button>
+                <button type="button" class="preset-btn" onclick="applyPreset('https://jsonplaceholder.typicode.com/posts/1', 'GET', 200)">JSONPlaceholder</button>
+                <button type="button" class="preset-btn" onclick="applyPreset('https://api.github.com', 'GET', 200)">GitHub API</button>
+                <button type="button" class="preset-btn" onclick="applyPreset('https://httpbin.org/status/500', 'GET', 200)">HTTPBin 500 (Fail Test)</button>
+            </div>
+
+            <div id="test-result-container" class="test-result-box">
+                <div id="test-result-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <strong id="test-result-title" style="font-size: 16px;"></strong>
+                    <div id="test-result-badges" class="result-meta"></div>
+                </div>
+                <p id="test-result-detail" style="margin-top: 10px; font-size: 13px; color: #cbd5e1;"></p>
+                <div id="test-preview-container" style="display: none;">
+                    <p style="font-size: 12px; color: #94a3b8; margin-top: 12px; margin-bottom: 4px;">Response Payload Preview:</p>
+                    <div id="test-result-preview" class="code-preview"></div>
+                </div>
+            </div>
+        </section>
+
         <section class="panel history">
             <h3>Deployment Information</h3>
 
@@ -476,6 +613,87 @@
             } catch (error) {
                 container.textContent =
                     "Unable to load GitHub history. Please try again.";
+            }
+        }
+
+        function applyPreset(url, method, status) {
+            document.getElementById("test-url").value = url;
+            document.getElementById("test-method").value = method;
+            document.getElementById("test-expected").value = status;
+        }
+
+        async function runSoftwareTest() {
+            const url = document.getElementById("test-url").value.trim();
+            const method = document.getElementById("test-method").value;
+            const expected = parseInt(document.getElementById("test-expected").value, 10) || 200;
+
+            const container = document.getElementById("test-result-container");
+            const title = document.getElementById("test-result-title");
+            const badges = document.getElementById("test-result-badges");
+            const detail = document.getElementById("test-result-detail");
+            const previewContainer = document.getElementById("test-preview-container");
+            const preview = document.getElementById("test-result-preview");
+
+            container.style.display = "block";
+            container.className = "test-result-box";
+            container.style.background = "#1e293b";
+            container.style.border = "1px solid #334155";
+            title.style.color = "#facc15";
+            title.textContent = "⏳ Running test diagnostics...";
+            badges.innerHTML = "";
+            detail.textContent = "Connecting to target host...";
+            previewContainer.style.display = "none";
+
+            try {
+                const response = await fetch("/api/test-service", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        url: url,
+                        method: method,
+                        expected_status: expected
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    if (data.passed) {
+                        container.className = "test-result-box test-passed";
+                        title.style.color = "#4ade80";
+                        title.textContent = `✅ Test Passed — ${data.status_code} ${data.status_text || 'OK'}`;
+                    } else {
+                        container.className = "test-result-box test-failed";
+                        title.style.color = "#f87171";
+                        title.textContent = `❌ Status Mismatch — Got ${data.status_code} (Expected ${data.expected_status})`;
+                    }
+
+                    badges.innerHTML = `
+                        <span class="result-badge" style="background:#1e3a5f; color:#93c5fd;">⚡ ${data.latency_ms} ms</span>
+                        <span class="result-badge" style="background:#263247; color:#e2e8f0;">📄 ${data.content_type.split(";")[0]}</span>
+                        <span class="result-badge" style="background:#263247; color:#e2e8f0;">📦 ${data.response_size_bytes} bytes</span>
+                    `;
+
+                    detail.textContent = `Target ${data.method} ${data.url} responded with HTTP status ${data.status_code} in ${data.latency_ms} ms.`;
+
+                    if (data.response_preview) {
+                        previewContainer.style.display = "block";
+                        preview.textContent = data.response_preview;
+                    }
+                } else {
+                    container.className = "test-result-box test-failed";
+                    title.style.color = "#f87171";
+                    title.textContent = `❌ Test Failed`;
+                    detail.textContent = data.error || "An unexpected error occurred during test execution.";
+                    if (data.latency_ms !== undefined && data.latency_ms !== null) {
+                        badges.innerHTML = `<span class="result-badge" style="background:#3b1c1c; color:#fca5a5;">⏱️ ${data.latency_ms} ms</span>`;
+                    }
+                }
+            } catch (err) {
+                container.className = "test-result-box test-failed";
+                title.style.color = "#f87171";
+                title.textContent = "❌ Network / Gateway Error";
+                detail.textContent = "Could not connect to the Smart-Ops testing engine: " + err.message;
             }
         }
 
