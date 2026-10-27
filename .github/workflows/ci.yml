@@ -21,16 +21,5 @@ jobs:
       - name: Run Tests
         run: python -m pytest -v
 
-      - name: Login to Docker Hub
-        if: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and Push Docker Image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
-          tags: ${{ secrets.DOCKERHUB_USERNAME != '' && format('{0}/smart-ops:latest', secrets.DOCKERHUB_USERNAME) || 'smart-ops:latest' }}
+      - name: Build Docker Image
+        run: docker build -t smart-ops:latest .
