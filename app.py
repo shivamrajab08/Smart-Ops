@@ -10,7 +10,7 @@ app = Flask(__name__)
 CORS(app)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-GITHUB_REPO = "ratnakargupta02-byte/Smart-Ops"
+GITHUB_REPO = os.environ.get("GITHUB_REPO", "shivamrajab08/Smart-Ops")
 
 
 @app.route("/")

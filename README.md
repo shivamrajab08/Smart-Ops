@@ -5,7 +5,7 @@ Automated Deployment and Monitoring Platform using DevOps.
 - Frontend: https://smart-ops-dashboard-six.vercel.app
 - Backend: https://smart-ops-b0dj.onrender.com
 - Health Check: https://smart-ops-b0dj.onrender.com/health
-- GitHub: https://github.com/ratnakargupta02-byte/Smart-Ops
+- GitHub: https://github.com/shivamrajab08/Smart-Ops
 - Docker Hub: https://hub.docker.com/r/xrg1114/smart-ops
 
 ## Features
@@ -23,7 +23,7 @@ Python, Flask, HTML, CSS, JavaScript, Docker, GitHub Actions, Render, Vercel, py
 
 ## Run Locally
 1. Clone the repository:
-   `git clone https://github.com/ratnakargupta02-byte/Smart-Ops.git`
+   `git clone https://github.com/shivamrajab08/Smart-Ops.git`
 2. Open the project folder.
 3. Install dependencies:
    `pip install -r requirements.txt`
